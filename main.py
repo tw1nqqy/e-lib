@@ -1,5 +1,6 @@
 from models import Library
 from schemas import Status
+import json
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
             case '1':
                 title = input("Write down book title: ")
                 author = input("Write down book author: ")
-                year = input("Write down book year: ")
+                year = int(input("Write down book year: "))
                 library.add_book(title, author, year)
 
             case '2':
@@ -31,27 +32,34 @@ def main():
                     print("Error: write down correct ID.")
 
             case '3':
-                search_term = input("Write down title, author or yer to find book: ")
-                found_books = library.find_books(search_term)
-                if found_books:
-                    for book in found_books:
-                        print(book)
+                title = input("Write down title (or leave it empty): ")
+                author = input("Write down author (or leave it empty): ")
+                year_input = input("Write down year (or leave it empty): ")
+                year = int(year_input) if year_input else None
+
+                books_found = library.find_books(title=title or None, author=author or None, year=year)
+
+                if books_found:
+                    for book in books_found:
+                        print(json.dumps(book.to_json(), ensure_ascii=False))
                 else:
                     print("Books not found.")
 
             case '4':
-                library.display_books()
+                books = library.display_books()
+                for book in books:
+                    print(json.dumps(book.to_json(), ensure_ascii=False))
 
             case '5':
+                book_id = int(input("Write down book ID to change status: "))
+                new_status = input("Choice book status:\n 1) Available\n 2) Issued")
+
+                new_status = Status.available if new_status == "1" else Status.issued
                 try:
-                    book_id = int(input("Write down book ID to change status: "))
-                    new_status = input("Choice book status:\n 1) Available\n 2) Issued")
-
-                    new_status = Status.available if new_status == "1" else Status.issued
-
                     library.change_status(book_id, new_status)
-                except ValueError:
-                    print("Error: write down correct ID.")
+                    print("Book status changed.")
+                except ValueError as e:
+                    print(e)
 
             case '6':
                 print("Exit from program.")
